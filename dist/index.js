@@ -8,21 +8,50 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import express from 'express';
-import SurePetAPI from './api.js';
+import SurePetAPI from './sources/surepet/index.js';
+import YaleAPI from './sources/yale/index.js';
 const server = express();
-let api = new SurePetAPI();
-server.get('/api/flap/status', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+let surePet = new SurePetAPI();
+let yale = new YaleAPI();
+server.get('/api/yale/status', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        res.status(200).send(String(yield api.status()));
+        res.status(200).send(String(yield yale.isArmed()));
     }
     catch (e) {
         console.error(e);
         res.send(500);
     }
 }));
-server.get('/api/flap/whereis/:pet', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+server.get('/api/yale/partarm', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        res.json(yield api.locationOf(req.params.pet));
+        res.status(200).send(String(yield yale.partArm()));
+    }
+    catch (e) {
+        console.error(e);
+        res.send(500);
+    }
+}));
+server.get('/api/yale/disarm', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        res.status(200).send(String(yield yale.disarm()));
+    }
+    catch (e) {
+        console.error(e);
+        res.send(500);
+    }
+}));
+server.get('/api/surepet/status', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        res.status(200).send(String(yield surePet.status()));
+    }
+    catch (e) {
+        console.error(e);
+        res.send(500);
+    }
+}));
+server.get('/api/surepet/whereis/:pet', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        res.json(yield surePet.locationOf(req.params.pet));
     }
     catch (e) {
         if (e.message.includes('not find')) {
@@ -32,9 +61,9 @@ server.get('/api/flap/whereis/:pet', (req, res) => __awaiter(void 0, void 0, voi
         res.send(500);
     }
 }));
-server.get('/api/flap/lock', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+server.get('/api/surepet/lock', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        if (yield api.lock()) {
+        if (yield surePet.lock()) {
             res.status(200).send('Success');
         }
         else {
@@ -46,9 +75,9 @@ server.get('/api/flap/lock', (req, res) => __awaiter(void 0, void 0, void 0, fun
         res.send(500);
     }
 }));
-server.get('/api/flap/unlock', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+server.get('/api/surepet/unlock', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        if (yield api.unlock()) {
+        if (yield surePet.unlock()) {
             res.status(200).send('Success');
         }
         else {
