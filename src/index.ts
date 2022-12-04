@@ -65,20 +65,25 @@ server.get('/api/surepet/whereis/:pet', async (req, res) => {
     }
 });
 
-server.get('/api/surepet/lock', async (req, res) => {
-    res.redirect('./lock/in');
-});
-
-server.get('/api/surepet/lock/:direction', async (req, res) => {
+server.get('/api/surepet/lock/:direction?', async (req, res) => {
     try {
-        if (
-            req.params.direction === LockModeFriendlyName.LOCKED_IN
-                ? await surePet.lockIn()
-                : await surePet.lock()
-        ) {
-            res.status(200).send(
-                `Successfully locked ${req.params.direction || 'out'}`
-            );
+        let result;
+        let direction;
+        switch (req.params.direction) {
+            case LockModeFriendlyName.LOCKED_IN:
+                direction = 'in';
+                result = await surePet.lockIn();
+                break;
+            case LockModeFriendlyName.LOCKED_OUT:
+                direction = 'out';
+                result = await surePet.lockOut();
+                break;
+            default:
+                direction = 'both ways';
+                result = await surePet.lock();
+        }
+        if (result) {
+            res.status(200).send(`Successfully locked ${direction}`);
         } else {
             res.status(500).send('Failure');
         }
