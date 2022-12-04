@@ -1,5 +1,5 @@
 # Node build artifacts
-node_modules
+node_modules/
 npm-debug.log
 
 # Local development
@@ -8,6 +8,6 @@ npm-debug.log
 .DS_Store
 
 # Docker
-dist
+dist/
 Dockerfile
 docker-compose.yml

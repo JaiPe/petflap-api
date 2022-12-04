@@ -1,6 +1,7 @@
 import express from 'express';
 
 import SurePetAPI from './sources/surepet/index.js';
+import { LockModeFriendlyName } from './sources/surepet/types.js';
 import YaleAPI from './sources/yale/index.js';
 
 const server = express();
@@ -19,7 +20,11 @@ server.get('/api/yale/status', async (req, res) => {
 
 server.get('/api/yale/partarm', async (req, res) => {
     try {
-        res.status(200).send(String(await yale.partArm()));
+        if (await yale.partArm()) {
+            res.status(200).send('Successfully part-armed');
+        } else {
+            res.status(500).send('Failure');
+        }
     } catch (e) {
         console.error(e);
         res.send(500);
@@ -28,7 +33,11 @@ server.get('/api/yale/partarm', async (req, res) => {
 
 server.get('/api/yale/disarm', async (req, res) => {
     try {
-        res.status(200).send(String(await yale.disarm()));
+        if (await yale.disarm()) {
+            res.status(200).send('Successfully disarmed');
+        } else {
+            res.status(500).send('Failure');
+        }
     } catch (e) {
         console.error(e);
         res.send(500);
@@ -57,9 +66,19 @@ server.get('/api/surepet/whereis/:pet', async (req, res) => {
 });
 
 server.get('/api/surepet/lock', async (req, res) => {
+    res.redirect('./lock/in');
+});
+
+server.get('/api/surepet/lock/:direction', async (req, res) => {
     try {
-        if (await surePet.lock()) {
-            res.status(200).send('Success');
+        if (
+            req.params.direction === LockModeFriendlyName.LOCKED_IN
+                ? await surePet.lockIn()
+                : await surePet.lock()
+        ) {
+            res.status(200).send(
+                `Successfully locked ${req.params.direction || 'out'}`
+            );
         } else {
             res.status(500).send('Failure');
         }
@@ -72,7 +91,7 @@ server.get('/api/surepet/lock', async (req, res) => {
 server.get('/api/surepet/unlock', async (req, res) => {
     try {
         if (await surePet.unlock()) {
-            res.status(200).send('Success');
+            res.status(200).send('Successfully unlocked');
         } else {
             res.status(500).send('Failure');
         }
@@ -82,6 +101,7 @@ server.get('/api/surepet/unlock', async (req, res) => {
     }
 });
 
-server.listen(process.env.PORT || 8080);
+const PORT = process.env.PORT || 8080;
 
-console.log(`Listening on port ${process.env.PORT || 8080}`);
+server.listen(PORT);
+console.log(`Listening on port ${PORT}`);

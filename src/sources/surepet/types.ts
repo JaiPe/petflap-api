@@ -9,6 +9,12 @@ export enum LockMode {
     CURFEW_OTHER
 }
 
+export enum LockModeFriendlyName {
+    LOCKED_BOTH = '',
+    LOCKED_IN = 'in',
+    LOCKED_OUT = 'out'
+}
+
 export const enum Endpoint {
     AUTH = 'https://app.api.surehub.io/api/auth/login',
     HOUSEHOLD = 'https://app.api.surehub.io/api/household',
