@@ -45,44 +45,6 @@ export default class SurePetAPI {
             this.#householdIds || (await getHouseholdIds(await this.token())));
     }
 
-    async lockIn() {
-        return new Promise(async (resolve, reject) => {
-            const timerId = setTimeout(() => {
-                resolve(true);
-            }, 3000);
-            put<{ locking: LockMode }>(
-                Endpoint.DEVICE,
-                { locking: LockMode.LOCKED_IN},
-                `${await this.#flaps(await this.#firstHousehold())}/control`,
-                await this.token(),
-                ADDITIONAL_HEADERS
-            ).then(result => {
-                clearTimeout(timerId);
-                resolve(result);
-            })
-            .catch(reject);
-        });
-    }
-
-    async lockOut() {
-        return new Promise(async (resolve, reject) => {
-            const timerId = setTimeout(() => {
-                resolve(true);
-            }, 3000);
-            put<{ locking: LockMode }>(
-                Endpoint.DEVICE,
-                { locking: LockMode.LOCKED_OUT },
-                `${await this.#flaps(await this.#firstHousehold())}/control`,
-                await this.token(),
-                ADDITIONAL_HEADERS
-            ).then(result => {
-                clearTimeout(timerId);
-                resolve(result);
-            })
-            .catch(reject);
-        });
-    }
-
     async #pets() {
         this.#petInfo =
             this.#petInfo ||
@@ -102,23 +64,23 @@ export default class SurePetAPI {
     }
 
     async lock() {
-        return await put<{ locking: LockMode }>(
+        return withGracefulTimeout(put<{ locking: LockMode }>(
             Endpoint.DEVICE,
-            { locking: LockMode.LOCKED_BOTH },
+            { locking: LockMode.LOCKED_IN },
             `${await this.#flaps(await this.#firstHousehold())}/control`,
             await this.token(),
             ADDITIONAL_HEADERS
-        );
+        ));
     }
 
     async unlock() {
-        return await put<{ locking: LockMode }>(
+        return withGracefulTimeout(put<{ locking: LockMode }>(
             Endpoint.DEVICE,
             { locking: LockMode.UNLOCKED },
             `${await this.#flaps(await this.#firstHousehold())}/control`,
             await this.token(),
             ADDITIONAL_HEADERS
-        );
+        ));
     }
 
     async #firstHousehold() {
@@ -243,4 +205,19 @@ async function getFlapIds(token, householdId): Promise<number[]> {
     }
 
     throw new Error('Could not find any cat flap devices.');
+}
+
+function withGracefulTimeout(promise: Promise<any>, timeout = 3000) {
+    return new Promise(async (resolve, reject) => {
+        const timerId = setTimeout(() => {
+            resolve(true);
+        }, timeout);
+    
+    
+        promise.then(result => {
+            clearTimeout(timerId);
+            resolve(result);
+        })
+        .catch(reject);
+    });
 }

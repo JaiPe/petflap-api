@@ -1,7 +1,6 @@
 import express from 'express';
 
 import SurePetAPI from './sources/surepet/index.js';
-import { LockModeFriendlyName } from './sources/surepet/types.js';
 import YaleAPI from './sources/yale/index.js';
 
 const server = express();
@@ -65,25 +64,10 @@ server.get('/api/surepet/whereis/:pet', async (req, res) => {
     }
 });
 
-server.get('/api/surepet/lock/:direction?', async (req, res) => {
+server.get('/api/surepet/lock', async (req, res) => {
     try {
-        let result;
-        let direction;
-        switch (req.params.direction) {
-            case LockModeFriendlyName.LOCKED_IN:
-                direction = 'in';
-                result = await surePet.lockIn();
-                break;
-            case LockModeFriendlyName.LOCKED_OUT:
-                direction = 'out';
-                result = await surePet.lockOut();
-                break;
-            default:
-                direction = 'both ways';
-                result = await surePet.lock();
-        }
-        if (result) {
-            res.status(200).send(`Successfully locked ${direction}`);
+        if (await surePet.lock()) {
+            res.status(200).send('Successfully locked');
         } else {
             res.status(500).send('Failure');
         }
