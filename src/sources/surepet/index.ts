@@ -46,13 +46,22 @@ export default class SurePetAPI {
     }
 
     async lockIn() {
-        return await put<{ locking: LockMode }>(
-            Endpoint.DEVICE,
-            { locking: LockMode.LOCKED_IN },
-            `${await this.#flaps(await this.#firstHousehold())}/control`,
-            await this.token(),
-            ADDITIONAL_HEADERS
-        );
+        return new Promise(async (resolve, reject) => {
+            const timerId = setTimeout(() => {
+                resolve(true);
+            }, 3000);
+            put<{ locking: LockMode }>(
+                Endpoint.DEVICE,
+                { locking: LockMode.LOCKED_IN},
+                `${await this.#flaps(await this.#firstHousehold())}/control`,
+                await this.token(),
+                ADDITIONAL_HEADERS
+            ).then(result => {
+                clearTimeout(timerId);
+                resolve(result);
+            })
+            .catch(reject);
+        });
     }
 
     async lockOut() {
